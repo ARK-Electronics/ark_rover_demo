@@ -68,7 +68,7 @@ class OffboardControl(Node):
 
         self.joy_sub = self.create_subscription(
             Joy,
-            '/joystick',
+            '/ark_rover/joystick',
             self.joy_callback,
             10)
 
