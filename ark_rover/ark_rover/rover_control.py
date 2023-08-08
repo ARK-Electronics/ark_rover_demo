@@ -78,7 +78,7 @@ class OffboardControl(Node):
         # self.publisher_velocity = self.create_publisher(Twist, '/fmu/in/setpoint_velocity/cmd_vel_unstamped', qos_profile)
         # self.publisher_trajectory = self.create_publisher(TrajectorySetpoint, '/fmu/in/trajectory_setpoint', qos_profile)
         self.vehicle_command_publisher_ = self.create_publisher(VehicleCommand, "/fmu/in/vehicle_command", qos)
-        self.manual_control_publisher_ = self.create_publisher(ManualControlSetpoint, "/manual_control_setpoint", qos)
+        self.manual_control_publisher_ = self.create_publisher(ManualControlSetpoint, "/fmu/in/manual_control_setpoint", qos)
         # self.motor_control_publisher_ = self.create_publisher(ActuatorMotors, "/fmu/in/actuator_controls_0", qos_profile)
 
         
@@ -116,40 +116,77 @@ class OffboardControl(Node):
         # self.arm_message = False
         # self.failsafe = False
 
-        #states with corresponding callback functions that run once when state switches
-        # self.states = {
-        #     "IDLE": self.state_init,
-        #     "ARMING": self.state_arming,
-        #     "TAKEOFF": self.state_takeoff,
-        #     "LOITER": self.state_loiter,
-        #     "OFFBOARD": self.state_offboard
-        # }
-        # self.current_state = "IDLE"
+        states with corresponding callback functions that run once when state switches
+        self.states = {
+            "IDLE": self.state_init,
+            "ARMING": self.state_arming,
+            "TAKEOFF": self.state_takeoff,
+            "LOITER": self.state_loiter,
+            "OFFBOARD": self.state_offboard
+        }
+        self.current_state = "IDLE"
     
 
     
 
-    #callback function that arms, takes off, and switches to offboard mode
-    #implements a finite state machine
+    
+    
     def arm_timer_callback(self):
+        # match current_state:
+        #     case "IDLE":
+                
+                
+        #     case "MANUAL":
+
+        #     case "ARMING":
+
+        #     case "DRIVE":
+
+        #     case "DISARM":
+
+
         self.publish_vehicle_command(VehicleCommand.VEHICLE_CMD_DO_SET_MODE, 1., 1.)
+        self.publish_vehicle_command(VehicleCommand.VEHICLE_CMD_COMPONENT_ARM_DISARM, 1.0)
+        publish_manual_control(self)
+        
+        
+        # self.get_logger().info("Test Print")
+
+    def publish_manual_control(self):
         msg = ManualControlSetpoint()
         msg.timestamp = self.get_clock().now().nanoseconds
         msg.timestamp_sample = self.get_clock().now().nanoseconds
-        msg.data_source = 1
+        msg.data_source = 2
         msg.throttle = self.joy_LY
         msg.valid = True
         msg.sticks_moving = True
         msg.pitch = 0.0
-        msg.roll = 0.0
-        msg.yaw = self.joy_RX
-        msg.aux1 = 0.0
+        msg.roll = self.joy_RX
+        msg.yaw = 0.0
+        msg.aux1 = -1.0  # -1.0 - LOW  1.0 - HIGH
         msg.aux2 = 0.0
         msg.aux3 = 0.0
         msg.aux4 = 0.0
         msg.aux5 = 0.0
         msg.aux6 = 0.0
         self.manual_control_publisher_.publish(msg)
+
+    # publishes command to /fmu/in/vehicle_command
+    def publish_vehicle_command(self, command, param1=0.0, param2=0.0, param7=0.0):
+        msg = VehicleCommand()
+        # msg.flag_control_manual_enabled = True
+        # msg.flag_control_attitude_enabled = True
+        msg.param1 = param1
+        msg.param2 = param2
+        msg.param7 = param7    # altitude value in takeoff command
+        msg.command = command  # command ID
+        msg.target_system = 1  # system which should execute the command
+        msg.target_component = 1  # component which should execute the command, 0 for all components
+        msg.source_system = 1  # system sending the command
+        msg.source_component = 1  # component sending the command
+        msg.from_external = True
+        msg.timestamp = int(Clock().now().nanoseconds / 1000) # time in microseconds
+        self.vehicle_command_publisher_.publish(msg)
 
     def joy_callback(self, msg):
         self.joy_LX = msg.axes[0]
@@ -180,22 +217,7 @@ class OffboardControl(Node):
 
     
 
-    # publishes command to /fmu/in/vehicle_command
-    def publish_vehicle_command(self, command, param1=0.0, param2=0.0, param7=0.0):
-        msg = VehicleCommand()
-        # msg.flag_control_manual_enabled = True
-        # msg.flag_control_attitude_enabled = True
-        msg.param1 = param1
-        msg.param2 = param2
-        msg.param7 = param7    # altitude value in takeoff command
-        msg.command = command  # command ID
-        msg.target_system = 1  # system which should execute the command
-        msg.target_component = 1  # component which should execute the command, 0 for all components
-        msg.source_system = 1  # system sending the command
-        msg.source_component = 1  # component sending the command
-        msg.from_external = True
-        msg.timestamp = int(Clock().now().nanoseconds / 1000) # time in microseconds
-        self.vehicle_command_publisher_.publish(msg)
+    
 
     
 

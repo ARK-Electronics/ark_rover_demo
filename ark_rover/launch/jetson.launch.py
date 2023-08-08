@@ -53,10 +53,10 @@ def generate_launch_description():
         #     executable='visualizer',
         #     name='visualizer'
         # ),
-        ExecuteProcess(
-            cmd=['MicroXRCEAgent', 'udp4', '-p', '8888'],
-            output='screen'
-        ),
+        # ExecuteProcess(
+        #     cmd=['MicroXRCEAgent', 'serial', '--dev', '/dev/ttyTHS0', 'b', '3000000'],
+        #     output='screen'
+        # ),
         # Node(
         #     package='ark_rover',
         #     namespace='ark_rover',
