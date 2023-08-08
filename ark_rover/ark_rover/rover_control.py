@@ -78,7 +78,7 @@ class OffboardControl(Node):
         # self.publisher_velocity = self.create_publisher(Twist, '/fmu/in/setpoint_velocity/cmd_vel_unstamped', qos_profile)
         # self.publisher_trajectory = self.create_publisher(TrajectorySetpoint, '/fmu/in/trajectory_setpoint', qos_profile)
         self.vehicle_command_publisher_ = self.create_publisher(VehicleCommand, "/fmu/in/vehicle_command", qos)
-        self.manual_control_publisher_ = self.create_publisher(ManualControlSetpoint, "/fmu/in/manual_control_setpoint", qos)
+        self.manual_control_input_publisher_ = self.create_publisher(ManualControlSetpoint, "/fmu/in/manual_control_input", qos)
         # self.motor_control_publisher_ = self.create_publisher(ActuatorMotors, "/fmu/in/actuator_controls_0", qos_profile)
 
         
@@ -175,7 +175,7 @@ class OffboardControl(Node):
         msg.aux4 = 0.0
         msg.aux5 = 0.0
         msg.aux6 = 0.0
-        self.manual_control_publisher_.publish(msg)
+        self.manual_control_input_publisher_.publish(msg)
 
     # publishes command to /fmu/in/vehicle_command
     def publish_vehicle_command(self, command, param1=0.0, param2=0.0, param7=0.0):
