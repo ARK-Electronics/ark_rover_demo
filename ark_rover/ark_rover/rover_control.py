@@ -132,17 +132,23 @@ class OffboardControl(Node):
     
     
     def arm_timer_callback(self):
-        # match current_state:
-        #     case "IDLE":
+        match current_state:
+            case "IDLE":
+                #always send manual mode command
+                #if arm command recieved
+                    #send to arm state
+
+            case "ARMING":
+                #send arm command continuously
+                    #if vehicle_status.arm_state == 2(armed)
+                        #self.current_state = "DRIVE"
+                    #if timer exceeds 5 seconds
+                        #self.current_state = "DISARM"
                 
-                
-        #     case "MANUAL":
 
-        #     case "ARMING":
+            case "DRIVE":
 
-        #     case "DRIVE":
-
-        #     case "DISARM":
+            case "DISARM":
 
 
         self.publish_vehicle_command(VehicleCommand.VEHICLE_CMD_DO_SET_MODE, 1., 1.)
