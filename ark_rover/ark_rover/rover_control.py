@@ -59,6 +59,13 @@ class OffboardControl(Node):
     def __init__(self):
         super().__init__('minimal_publisher')
 
+        qos_profile = QoSProfile(
+            reliability=QoSReliabilityPolicy.RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT,
+            durability=QoSDurabilityPolicy.RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
+            history=QoSHistoryPolicy.RMW_QOS_POLICY_HISTORY_KEEP_LAST,
+            depth=1
+        )
+
         qos = QoSProfile(
             depth=1,
             reliability=ReliabilityPolicy.RELIABLE,
@@ -71,6 +78,13 @@ class OffboardControl(Node):
             '/ark_rover/joystick',
             self.joy_callback,
             10)
+
+        self.vehicle_status_sub = self.create_subscription(
+            VehicleStatus,
+            '/fmu/out/vehicle_status',
+            self.vehicle_status_callback,
+            qos_profile
+        )
 
 
         #Create publishers
@@ -86,7 +100,7 @@ class OffboardControl(Node):
         
         #creates callback function for the arm timer
         # period is arbitrary, just should be more than 2Hz
-        arm_timer_period = .02 # seconds
+        arm_timer_period = .05 # seconds
         self.arm_timer_ = self.create_timer(arm_timer_period, self.arm_timer_callback)
         self.throttleValue = 0.0
         self.bool1 = False
@@ -111,41 +125,80 @@ class OffboardControl(Node):
         self.trigger_L = 0.0
         self.trigger_R = 0.0
 
+        self.arm_one_shot = False
+        self.rover_armed = False
         
 
-        
+        self.cnt_timer = 0
         self.myCnt = 0
         # self.arm_message = False
         # self.failsafe = False
 
         # states with corresponding callback functions that run once when state switches
-        # self.states = {
-        #     "IDLE": self.state_init,
-        #     "ARMING": self.state_arming,
-        #     "TAKEOFF": self.state_takeoff,
-        #     "LOITER": self.state_loiter,
-        #     "OFFBOARD": self.state_offboard
-        # }
-        # self.current_state = "IDLE"
+        self.states = {
+            "IDLE": self.state_idle,
+            "ARMING": self.state_arming,
+            "DRIVE": self.state_drive,
+            "DISARM": self.state_disarm
+        }
+        self.current_state = "IDLE"
+    
+    # Implementation for the 'IDLE' state
+    def state_idle(self):
+        
+        pass
+
+    # Implementation for the 'ARMING' state
+    def state_arming(self):
+        self.cnt_timer = 0
+
+    # Implementation for the 'DRIVE' state
+    def state_drive(self):
+    
+        pass
+
+    # Implementation for the 'DISARM' state
+    def state_disarm(self):
+    
+        pass
     
 
-    
 
     
     
     def arm_timer_callback(self):
-        # match current_state:
-        #     case "IDLE":
-        #         #always send manual mode command
-        #         #if arm command recieved
-        #             #send to arm state
+        #IDLE State
+        if (self.current_state == "IDLE"):
+            self.get_logger().info("INIT")
+            #check if A has been pressed and released to arm
+            if(self.one_shot("button_A") == True):
+                self.current_state = "ARMING"
+                self.cnt_timer = 0
 
-        #     case "ARMING":
-        #         #send arm command continuously
-        #             #if vehicle_status.arm_state == 2(armed)
-        #                 #self.current_state = "DRIVE"
-        #             #if timer exceeds 5 seconds
-        #                 #self.current_state = "DISARM"
+        #ARM State
+        elif(self.current_state == "ARMING"):
+            self.get_logger().info("ARMING")
+            self.publish_vehicle_command(VehicleCommand.VEHICLE_CMD_COMPONENT_ARM_DISARM, 1.0)
+            if(self.one_shot("button_A") == True):
+                self.current_state = "DISARM"
+            self.cnt_timer += 1
+            self.get_logger().info(f"Timer: {self.cnt_timer}")
+            #Check for arm for 5 seconds
+            if(self.cnt_timer >= 25):
+                self.current_state = "DISARM"
+            if(self.rover_armed == True):
+                self.current_state = "DRIVE"
+
+        elif(self.current_state == "DRIVE"):
+            self.get_logger().info("DRIVE")
+            if(self.rover_armed == False):
+                self.current_state = "DISARM"
+            
+
+        elif(self.current_state == "DISARM"):
+            self.get_logger().info("DISARM")
+            self.publish_vehicle_command(VehicleCommand.VEHICLE_CMD_COMPONENT_ARM_DISARM, 0.0)
+            self.current_state = "IDLE"
                 
 
         #     case "DRIVE":
@@ -154,11 +207,23 @@ class OffboardControl(Node):
 
 
         self.publish_vehicle_command(VehicleCommand.VEHICLE_CMD_DO_SET_MODE, 1., 1.)
-        self.publish_vehicle_command(VehicleCommand.VEHICLE_CMD_COMPONENT_ARM_DISARM, 1.0)
+        
         self.publish_manual_control()
         
         
         # self.get_logger().info("Test Print")
+
+    def one_shot(self, button_name):
+        button_value = getattr(self, button_name, 0.0)
+
+        if button_value == 1.0:
+            self.arm_one_shot = True
+            self.get_logger().info(f"{button_name} pressed")
+        if button_value == 0.0 and self.arm_one_shot == True:
+            self.get_logger().info("2")
+            self.arm_one_shot = False
+            return True
+        return False
 
     def publish_manual_control(self):
         msg = ManualControlSetpoint()
@@ -214,6 +279,13 @@ class OffboardControl(Node):
 
         self.trigger_L = msg.axes[2] #trigger values go from -1 to 1
         self.trigger_R = msg.axes[5]
+
+    def vehicle_status_callback(self, msg):
+        if(msg.arming_state == 1):
+            self.rover_armed = False
+        else:
+            self.rover_armed = True
+        # self.get_logger().info(str(msg.arming_state))
 
 
     
