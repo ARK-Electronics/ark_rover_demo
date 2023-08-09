@@ -78,6 +78,8 @@ class OffboardControl(Node):
         # self.publisher_velocity = self.create_publisher(Twist, '/fmu/in/setpoint_velocity/cmd_vel_unstamped', qos_profile)
         # self.publisher_trajectory = self.create_publisher(TrajectorySetpoint, '/fmu/in/trajectory_setpoint', qos_profile)
         self.vehicle_command_publisher_ = self.create_publisher(VehicleCommand, "/fmu/in/vehicle_command", qos)
+
+        #PX4 Overloads the ManualControlSetpoint topic so that it can distinguish between RC and Mavlink input
         self.manual_control_input_publisher_ = self.create_publisher(ManualControlSetpoint, "/fmu/in/manual_control_input", qos)
         # self.motor_control_publisher_ = self.create_publisher(ActuatorMotors, "/fmu/in/actuator_controls_0", qos_profile)
 
