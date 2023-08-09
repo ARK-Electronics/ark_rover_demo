@@ -57,6 +57,7 @@ def generate_launch_description():
         #     cmd=['MicroXRCEAgent', 'serial', '--dev', '/dev/ttyTHS0', 'b', '3000000'],
         #     output='screen'
         # ),
+        # MicroXRCEAgent serial --dev /dev/ttyTHS0 b 3000000
         # Node(
         #     package='ark_rover',
         #     namespace='ark_rover',

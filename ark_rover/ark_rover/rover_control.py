@@ -116,15 +116,15 @@ class OffboardControl(Node):
         # self.arm_message = False
         # self.failsafe = False
 
-        states with corresponding callback functions that run once when state switches
-        self.states = {
-            "IDLE": self.state_init,
-            "ARMING": self.state_arming,
-            "TAKEOFF": self.state_takeoff,
-            "LOITER": self.state_loiter,
-            "OFFBOARD": self.state_offboard
-        }
-        self.current_state = "IDLE"
+        # states with corresponding callback functions that run once when state switches
+        # self.states = {
+        #     "IDLE": self.state_init,
+        #     "ARMING": self.state_arming,
+        #     "TAKEOFF": self.state_takeoff,
+        #     "LOITER": self.state_loiter,
+        #     "OFFBOARD": self.state_offboard
+        # }
+        # self.current_state = "IDLE"
     
 
     
@@ -132,28 +132,28 @@ class OffboardControl(Node):
     
     
     def arm_timer_callback(self):
-        match current_state:
-            case "IDLE":
-                #always send manual mode command
-                #if arm command recieved
-                    #send to arm state
+        # match current_state:
+        #     case "IDLE":
+        #         #always send manual mode command
+        #         #if arm command recieved
+        #             #send to arm state
 
-            case "ARMING":
-                #send arm command continuously
-                    #if vehicle_status.arm_state == 2(armed)
-                        #self.current_state = "DRIVE"
-                    #if timer exceeds 5 seconds
-                        #self.current_state = "DISARM"
+        #     case "ARMING":
+        #         #send arm command continuously
+        #             #if vehicle_status.arm_state == 2(armed)
+        #                 #self.current_state = "DRIVE"
+        #             #if timer exceeds 5 seconds
+        #                 #self.current_state = "DISARM"
                 
 
-            case "DRIVE":
+        #     case "DRIVE":
 
-            case "DISARM":
+        #     case "DISARM":
 
 
         self.publish_vehicle_command(VehicleCommand.VEHICLE_CMD_DO_SET_MODE, 1., 1.)
         self.publish_vehicle_command(VehicleCommand.VEHICLE_CMD_COMPONENT_ARM_DISARM, 1.0)
-        publish_manual_control(self)
+        self.publish_manual_control()
         
         
         # self.get_logger().info("Test Print")
