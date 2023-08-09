@@ -127,10 +127,12 @@ class OffboardControl(Node):
 
         self.arm_one_shot = False
         self.rover_armed = False
+        self.joy_stall = False
         
 
         self.cnt_timer = 0
         self.myCnt = 0
+        self.joy_stall_timer = 0
         # self.arm_message = False
         # self.failsafe = False
 
@@ -169,7 +171,7 @@ class OffboardControl(Node):
     def arm_timer_callback(self):
         #IDLE State
         if (self.current_state == "IDLE"):
-            self.get_logger().info("INIT")
+            # self.get_logger().info("INIT")
             #check if A has been pressed and released to arm
             if(self.one_shot("button_A") == True):
                 self.current_state = "ARMING"
@@ -177,12 +179,12 @@ class OffboardControl(Node):
 
         #ARM State
         elif(self.current_state == "ARMING"):
-            self.get_logger().info("ARMING")
+            # self.get_logger().info("ARMING")
             self.publish_vehicle_command(VehicleCommand.VEHICLE_CMD_COMPONENT_ARM_DISARM, 1.0)
             if(self.one_shot("button_A") == True):
                 self.current_state = "DISARM"
             self.cnt_timer += 1
-            self.get_logger().info(f"Timer: {self.cnt_timer}")
+            # self.get_logger().info(f"Timer: {self.cnt_timer}")
             #Check for arm for 5 seconds
             if(self.cnt_timer >= 25):
                 self.current_state = "DISARM"
@@ -190,20 +192,19 @@ class OffboardControl(Node):
                 self.current_state = "DRIVE"
 
         elif(self.current_state == "DRIVE"):
-            self.get_logger().info("DRIVE")
+            # self.get_logger().info("DRIVE")
             if(self.rover_armed == False):
                 self.current_state = "DISARM"
             
+            
+            self.joy_checker()
 
         elif(self.current_state == "DISARM"):
-            self.get_logger().info("DISARM")
+            # self.get_logger().info("DISARM")
             self.publish_vehicle_command(VehicleCommand.VEHICLE_CMD_COMPONENT_ARM_DISARM, 0.0)
             self.current_state = "IDLE"
                 
 
-        #     case "DRIVE":
-
-        #     case "DISARM":
 
 
         self.publish_vehicle_command(VehicleCommand.VEHICLE_CMD_DO_SET_MODE, 1., 1.)
@@ -218,9 +219,9 @@ class OffboardControl(Node):
 
         if button_value == 1.0:
             self.arm_one_shot = True
-            self.get_logger().info(f"{button_name} pressed")
+            # self.get_logger().info(f"{button_name} pressed")
         if button_value == 0.0 and self.arm_one_shot == True:
-            self.get_logger().info("2")
+            # self.get_logger().info("2")
             self.arm_one_shot = False
             return True
         return False
@@ -262,6 +263,8 @@ class OffboardControl(Node):
         self.vehicle_command_publisher_.publish(msg)
 
     def joy_callback(self, msg):
+        self.joy_stall = False
+        self.joy_stall_timer = 0
         self.joy_LX = msg.axes[0]
         self.joy_LY = -msg.axes[1] #axis needs to be inverted # rover throttle
         self.joy_RX = msg.axes[3] #rover yaw
@@ -279,6 +282,16 @@ class OffboardControl(Node):
 
         self.trigger_L = msg.axes[2] #trigger values go from -1 to 1
         self.trigger_R = msg.axes[5]
+        # self.get_logger().info(f"Nano: {msg.header.stamp.nanosec}")
+
+    def joy_checker(self):
+        if(self.joy_stall == True):
+            self.joy_stall_timer += 1
+        if(self.joy_stall_timer >= 10): #after .5 seconds stop throttle
+            self.joy_LY = 0.0
+        if(self.joy_stall_timer >= 100): #after 5 seconds disarm
+            self.current_state = "DISARM"
+        self.joy_stall = True
 
     def vehicle_status_callback(self, msg):
         if(msg.arming_state == 1):
