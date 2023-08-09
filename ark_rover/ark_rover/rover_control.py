@@ -125,9 +125,13 @@ class OffboardControl(Node):
         self.trigger_L = 0.0
         self.trigger_R = 0.0
 
+        self.gear_speed = -1.0
+        self.transmission_lock = -1.0
+
         self.arm_one_shot = False
         self.rover_armed = False
         self.joy_stall = False
+        self.throttle_moving = False
         
 
         self.cnt_timer = 0
@@ -193,6 +197,9 @@ class OffboardControl(Node):
 
         elif(self.current_state == "DRIVE"):
             # self.get_logger().info("DRIVE")
+            if(self.one_shot("button_A") == True):
+                self.current_state = "DISARM"
+            self.cnt_timer += 1
             if(self.rover_armed == False):
                 self.current_state = "DISARM"
             
@@ -237,13 +244,27 @@ class OffboardControl(Node):
         msg.pitch = 0.0
         msg.roll = self.joy_RX
         msg.yaw = 0.0
-        msg.aux1 = -1.0  # -1.0 - LOW  1.0 - HIGH
-        msg.aux2 = 0.0
-        msg.aux3 = 0.0
-        msg.aux4 = 0.0
-        msg.aux5 = 0.0
-        msg.aux6 = 0.0
+        msg.aux1 = self.gear_speed  # -1.0 - LOW  1.0 - HIGH
+        msg.aux2 = self.transmission_lock
+        msg.aux3 = self.transmission_lock
+        self.button_controls()
+        msg.aux4 = float("NAN")
+        msg.aux5 = float("NAN")
+        msg.aux6 = float("NAN")
         self.manual_control_input_publisher_.publish(msg)
+
+    def button_controls(self):
+        if(not(self.throttle_moving)):
+            if(self.D_pad_vert == 1.0):
+                self.gear_speed = 1.0
+            if(self.D_pad_vert == -1.0):
+                self.gear_speed = -1.0
+            if(self.D_pad_hor == -1.0):
+                self.transmission_lock = -1.0
+            if(self.D_pad_hor == 1.0):
+                self.transmission_lock = 1.0
+        
+        # self.get_logger().info(f"Gear: {self.gear_speed}")
 
     # publishes command to /fmu/in/vehicle_command
     def publish_vehicle_command(self, command, param1=0.0, param2=0.0, param7=0.0):
@@ -263,6 +284,7 @@ class OffboardControl(Node):
         self.vehicle_command_publisher_.publish(msg)
 
     def joy_callback(self, msg):
+        dead_zone = .10
         self.joy_stall = False
         self.joy_stall_timer = 0
         self.joy_LX = msg.axes[0]
@@ -277,11 +299,16 @@ class OffboardControl(Node):
         self.button_L1 = msg.buttons[4]
         self.button_L2 = msg.buttons[5]
 
-        self.D_pad_vert = msg.axes[6]
-        self.D_pad_hor = msg.axes[7]
+        self.D_pad_vert = msg.axes[7]
+        self.D_pad_hor = msg.axes[6]
 
         self.trigger_L = msg.axes[2] #trigger values go from -1 to 1
         self.trigger_R = msg.axes[5]
+
+        if(self.joy_LY > dead_zone or self.joy_LY < -dead_zone):
+            self.throttle_moving = True
+        else:
+            self.throttle_moving = False
         # self.get_logger().info(f"Nano: {msg.header.stamp.nanosec}")
 
     def joy_checker(self):
