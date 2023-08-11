@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+<!--
+Width: 200mm
+Length: 433mm
+Height:
+Lidar position from center:158 from middle
+Is Lidar centered? Yes
+Camera position: Exactly On Edge
+IMU position: 60mm from center
+-->
+
+    <material name="red">
+        <color rgba="1 0 0 1"/>
+    </material>
+
+    <joint name="laser_joint" type="fixed">
+        <parent link="chassis"/>
+        <child link="laser_frame"/>
+        <origin xyz="-0.158 0 0.120" rpy="0 0 0"/>
+    </joint>
+
+    <link name="laser_frame">
+        <visual>
+            <geometry>
+                <cylinder radius="0.035" length="0.02"/>
+            </geometry>
+            <material name="red"/>
+        </visual>
+        <collision>
+            <geometry>
+                <cylinder radius="0.05" length="0.04"/>
+            </geometry>
+        </collision>
+        <xacro:inertial_cylinder mass="0.1" length="0.04" radius="0.05">
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+        </xacro:inertial_cylinder>
+    </link>
+</robot>
