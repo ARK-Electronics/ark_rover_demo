@@ -19,7 +19,7 @@ class JoystickNode(Node):
         joystick.init()
 
         clock = pygame.time.Clock()  # Add this line
-
+        self.cnt = 0
         while True:
             for event in pygame.event.get(): 
                 if event.type == pygame.QUIT: 
@@ -46,11 +46,16 @@ class JoystickNode(Node):
                 print(str(i + joystick.get_numaxes()) + ": " + str(joystick.get_hat(i)))
 
             joy = Joy()
+            seconds, nanoseconds = self.get_clock().now().seconds_nanoseconds()
+            joy.header.stamp.sec = int(seconds)
+            joy.header.stamp.nanosec = int(nanoseconds)
             joy.axes = axes
             joy.buttons = buttons
             self.publisher_.publish(joy)
 
-            clock.tick(100)  # And this line
+            clock.tick(20) #tick at 20Hz
+            # self.cnt += 1
+            # self.get_logger().info(str(self.cnt))
 
 def main(args=None):
     rclpy.init(args=args)
