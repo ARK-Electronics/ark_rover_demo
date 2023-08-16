@@ -238,7 +238,8 @@ class OffboardControl(Node):
         msg.timestamp = self.get_clock().now().nanoseconds
         msg.timestamp_sample = self.get_clock().now().nanoseconds
         msg.data_source = 2
-        msg.throttle = self.joy_LY
+        throttle_power = self.calculate_power(self.joy_LY, self.trigger_R, 35)
+        msg.throttle = throttle_power
         msg.valid = True
         msg.sticks_moving = True
         msg.pitch = 0.0
@@ -327,23 +328,25 @@ class OffboardControl(Node):
             self.rover_armed = True
         # self.get_logger().info(str(msg.arming_state))
 
-
-    
-
-
-    
-
+    def calculate_power(self, joystick, trigger, max_power_percentage):
+        # Clamp the values of joystick and trigger to the range [-1, 1]
+        joystick = max(-1, min(joystick, 1))
+        trigger = max(-1, min(trigger, 1))
         
+        # Normalize max_power_percentage to [0, 1]
+        max_power_normalized = max_power_percentage / 100
 
-    
+        # Calculate base power based on joystick and max_power_percentage
+        base_power = joystick * max_power_normalized
 
-    
+        # Calculate the multiplier from the trigger value, mapping [-1, 1] to [0, 1]
+        multiplier = (trigger + 1) / 2
 
-    
+        # Calculate final power by interpolating between base_power and 1 (100%)
+        final_power = (1 - multiplier) * base_power + multiplier * joystick
 
-    
+        return final_power
 
-    
 
 
 def main(args=None):
