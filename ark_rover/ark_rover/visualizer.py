@@ -2,6 +2,7 @@
 import numpy as np
 import rclpy
 import tf2_ros
+import geometry_msgs.msg
 from geometry_msgs.msg import PoseStamped, Point, TransformStamped
 from nav_msgs.msg import Path
 from rclpy.clock import Clock
@@ -49,6 +50,9 @@ class PX4Visualizer(Node):
             '/fmu/in/trajectory_setpoint',
             self.trajectory_setpoint_callback,
             qos_profile)
+        
+        self.broadcaster = tf2_ros.TransformBroadcaster(self)
+
 
         self.vehicle_pose_pub = self.create_publisher(PoseStamped, '/px4_visualizer/vehicle_pose', 10)
         self.vehicle_vel_pub = self.create_publisher(Marker, '/px4_visualizer/vehicle_velocity', 10)
@@ -84,12 +88,12 @@ class PX4Visualizer(Node):
         self.setpoint_position[2] = -msg.position[2]
 
     def cmdloop_callback(self):
-        vehicle_pose_msg = vector2PoseMsg('map', self.vehicle_local_position, self.vehicle_attitude)
+        vehicle_pose_msg = vector2PoseMsg('odom', self.vehicle_local_position, self.vehicle_attitude)
         self.vehicle_pose_pub.publish(vehicle_pose_msg)
 
         transform_stamped = TransformStamped()
         transform_stamped.header.stamp = self.get_clock().now().to_msg()
-        transform_stamped.header.frame_id = "map"
+        transform_stamped.header.frame_id = "odom"
         transform_stamped.child_frame_id = "base_link"
         transform_stamped.transform.translation.x = self.vehicle_local_position[0]
         transform_stamped.transform.translation.y = self.vehicle_local_position[1]
@@ -104,7 +108,7 @@ class PX4Visualizer(Node):
         self.vehicle_path_msg.poses.append(vehicle_pose_msg)
         self.vehicle_path_pub.publish(self.vehicle_path_msg)
 
-        setpoint_pose_msg = vector2PoseMsg('map', self.setpoint_position, self.vehicle_attitude)
+        setpoint_pose_msg = vector2PoseMsg('odom', self.setpoint_position, self.vehicle_attitude)
         self.setpoint_path_msg.header = setpoint_pose_msg.header
         self.setpoint_path_msg.poses.append(setpoint_pose_msg)
         self.setpoint_path_pub.publish(self.setpoint_path_msg)
@@ -112,10 +116,24 @@ class PX4Visualizer(Node):
         velocity_msg = self.create_arrow_marker(1, self.vehicle_local_position, self.vehicle_local_velocity)
         self.vehicle_vel_pub.publish(velocity_msg)
 
+        #new stuff
+        t = geometry_msgs.msg.TransformStamped()
+        t.header.stamp = self.get_clock().now().to_msg()
+        t.header.frame_id = "base_link"
+        t.child_frame_id = "base_footprint"
+        t.transform.translation.x = 0.0
+        t.transform.translation.y = 0.0
+        t.transform.translation.z = 0.0
+        t.transform.rotation.x = 0.0
+        t.transform.rotation.y = 0.0
+        t.transform.rotation.z = 0.0
+        t.transform.rotation.w = 1.0
+        self.broadcaster.sendTransform(t)
+
     def create_arrow_marker(self, id, tail, vector):
         msg = Marker()
         msg.action = Marker.ADD
-        msg.header.frame_id = 'map'
+        msg.header.frame_id = 'odom'
         msg.type = Marker.ARROW
         msg.id = id
         msg.scale.x = 0.1
