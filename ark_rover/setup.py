@@ -15,7 +15,9 @@ setup(
             ['resource/' + 'visualize.rviz']),
         ('share/' + package_name, ['package.xml']),
         (os.path.join('share', package_name), glob('launch/*launch.[pxy][yma]*')),
-        (os.path.join('share', package_name), glob('resource/*rviz'))
+        (os.path.join('share', package_name), glob('resource/*rviz')),
+        # (os.path.join('share', package_name), glob('description/'))
+        (os.path.join('share', package_name, 'description'), glob('description/*'))
         # (os.path.join('share', package_name), ['scripts/TerminatorScript.sh'])
     ],
     install_requires=['setuptools', 'pygame'],
@@ -27,6 +29,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+                'battery_publisher = ark_rover.battery_publisher:main',
                 'offboard_control = ark_rover.offboard_control:main',
                 'visualizer = ark_rover.visualizer:main',
                 'velocity_control = ark_rover.velocity_control:main',

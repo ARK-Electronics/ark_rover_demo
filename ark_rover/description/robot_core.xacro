@@ -36,6 +36,16 @@
 <link name="base_footprint">
 </link>
 
+<!-- CAMERA LINK -->
+<joint name="oak-d-base-frame_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="oak-d-base-frame"/>
+    <origin xyz="0.158 0 0.120" rpy="0 0 0"/>
+</joint>
+
+<link name="oak-d-base-frame">
+</link>
+
 <!--
 Width: 433mm
 Length: 433mm
