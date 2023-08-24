@@ -44,58 +44,45 @@ import os
 
 def generate_launch_description():
     package_dir = get_package_share_directory('ark_rover')
-    # bash_script_path = os.path.join(package_dir, 'scripts', 'TerminatorScript.sh')
     return LaunchDescription([
-        # ExecuteProcess(cmd=['bash', bash_script_path], output='screen'),
-        # Node(
-        #     package='ark_rover',
-        #     namespace='ark_rover',
-        #     executable='visualizer',
-        #     name='visualizer'
-        # ),
-        ExecuteProcess(
-            cmd=['MicroXRCEAgent', 'serial', '--dev', '/dev/ttyTHS0', '-b', '3000000'],
-            output='screen'
-        ),
-        # MicroXRCEAgent serial --dev /dev/ttyTHS0 b 3000000
-        # Node(
-        #     package='ark_rover',
-        #     namespace='ark_rover',
-        #     executable='processes',
-        #     name='processes',
-        #     prefix='gnome-terminal --'
-        # ),
-        # Node(
-        #     package='ark_rover',
-        #     namespace='ark_rover',
-        #     executable='control',
-        #     name='control',
-        #     prefix='gnome-terminal --',
-        # ),
-        # Node(
-        #     package='ark_rover',
-        #     namespace='ark_rover',
-        #     executable='velocity_control',
-        #     name='velocity'
-        # ),
         Node(
             package='ark_rover',
             namespace='ark_rover',
             executable='rover_control',
             name='rover'
-        )
-        #,
+        ),
+        Node(
+            package='depthai_examples',
+            namespace='depthai_examples',
+            executable='rgb_node',
+            name='rgb',
+            output='screen'
+        ),
+        Node(
+            package='ark_rover',
+            namespace='ark_rover',
+            executable='stream_compress',
+            name='stream_compress'
+        ),
+        Node(
+            package='ark_rover',
+            namespace='ark_rover',
+            executable='rplidar_checker',
+            name='rplidar_checker'
+        ),
         # Node(
-        #     package='ark_rover',
-        #     namespace='ark_rover',
-        #     executable='joystick',
-        #     name='joystick'
+        #     package='rplidar_ros',
+        #     executable='rplidar_composition',
+        #     name='rplidar_node',
+        #     parameters=[
+        #         {'serial_port': '/dev/ttyUSB0'},
+        #         {'frame_id': 'laser_frame'},
+        #         {'angle_compensate': True},
+        #         {'scan_mode': 'Standard'}
+        #     ]
         # ),
-        # Node(
-        #     package='rviz2',
-        #     namespace='',
-        #     executable='rviz2',
-        #     name='rviz2',
-        #     arguments=['-d', [os.path.join(package_dir, 'visualize.rviz')]]
-        # )
+        ExecuteProcess(
+            cmd=['MicroXRCEAgent', 'serial', '--dev', '/dev/ttyTHS0', '-b', '3000000'],
+            output='screen'
+        )
     ])

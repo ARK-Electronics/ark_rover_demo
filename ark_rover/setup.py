@@ -27,6 +27,12 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+                'rplidar_checker = ark_rover.rplidar_checker:main',
+                'rplidar_composition = rplidar_ros.rplidar_composition:main',
+                'stream_compress = ark_rover.stream_compress:main',
+                'battery_node = ark_rover.battery_node:main',
+                'marker_node = ark_rover.marker_node:main',
+                'image_publisher = ark_rover.image_publisher:main',
                 'offboard_control = ark_rover.offboard_control:main',
                 'visualizer = ark_rover.visualizer:main',
                 'velocity_control = ark_rover.velocity_control:main',
