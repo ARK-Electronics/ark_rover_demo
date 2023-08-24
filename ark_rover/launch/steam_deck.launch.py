@@ -11,7 +11,7 @@ def generate_launch_description():
     use_sim_time = LaunchConfiguration('use_sim_time')
 
     # Process the URDF file
-    pkg_path = os.path.join(get_package_share_directory('my_bot'))
+    pkg_path = os.path.join(get_package_share_directory('ark_rover'))
     xacro_file = os.path.join(pkg_path, 'description', 'robot.urdf.xacro')
     robot_description_config = xacro.process_file(xacro_file)
 
@@ -33,23 +33,23 @@ def generate_launch_description():
             default_value='false',
             description='Use sim time if true'),
         node_robot_state_publisher,
-        Node(
-            package='ark_rover',
-            namespace='ark_rover',
-            executable='visualizer',
-            name='visualizer'
-        ),
+        # Node(
+        #     package='ark_rover',
+        #     namespace='ark_rover',
+        #     executable='visualizer',
+        #     name='visualizer'
+        # ),
         Node(
             package='ark_rover',
             namespace='ark_rover',
             executable='joystick',
             name='joystick'
         ),
-        Node(
-            package='rviz2',
-            namespace='',
-            executable='rviz2',
-            name='rviz2',
-            arguments=['-d', [os.path.join(package_dir, 'visualize.rviz')]]
-        )
+        # Node(
+        #     package='rviz2',
+        #     namespace='',
+        #     executable='rviz2',
+        #     name='rviz2',
+        #     arguments=['-d', [os.path.join(package_dir, 'visualize.rviz')]]
+        # )
     ])
