@@ -45,6 +45,12 @@ def generate_launch_description():
             executable='joystick',
             name='joystick'
         ),
+        Node(
+            package='ark_rover',
+            namespace='ark_rover',
+            executable='battery_publisher',
+            name='battery_publisher'
+        )
         # Node(
         #     package='rviz2',
         #     namespace='',

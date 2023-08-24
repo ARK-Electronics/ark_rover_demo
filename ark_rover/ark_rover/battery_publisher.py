@@ -30,7 +30,7 @@ class BatteryStatusNode(Node):
         msg = Float32()
         msg.data = value
         self.publisher.publish(msg)
-        self.get_logger().info(f'Published remaining battery status: {msg.data}')
+        # self.get_logger().info(f'Published remaining battery status: {msg.data}')
 
 def main(args=None):
     rclpy.init(args=args)
