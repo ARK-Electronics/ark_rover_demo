@@ -1,0 +1,35 @@
+[Unit]
+
+Description=Rover Service
+
+
+Wants=network.target
+
+
+After=syslog.target network-online.target
+
+
+[Service]
+
+
+Type=simple
+
+User=jetson
+
+WorkingDirectory=/home/jetson/demo_rover_ws/
+ExecStart=/usr/bin/bash /home/jetson/demo_rover_ws/rover_auto_start.sh
+
+
+Restart=on-failure
+
+
+RestartSec=15
+
+
+KillMode=mixed
+
+
+[Install]
+
+
+WantedBy=multi-user.target
